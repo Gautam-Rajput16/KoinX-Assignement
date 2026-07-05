@@ -63,13 +63,13 @@ function DashboardContent() {
 export default function App() {
   return (
     <TaxHarvestingProvider>
-      <div className="min-h-screen bg-navy-950">
+      <div className="min-h-screen">
         <Header />
 
         <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Page Title */}
           <div className="flex items-baseline gap-3 mb-5">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-light-900 dark:text-white theme-transition">
               Tax Harvesting
             </h1>
             <a

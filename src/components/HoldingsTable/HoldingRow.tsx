@@ -1,108 +1,111 @@
-import {
-  formatIndianCurrency,
-  formatNumber,
-  formatPrice,
-} from '../../hooks/useCapitalGainsCalculations';
+import { useTaxHarvesting } from '../../context/TaxHarvestingContext';
 import type { Holding } from '../../types';
+import { formatIndianCurrency, formatPrice } from '../../hooks/useCapitalGainsCalculations';
 import { TableCheckbox } from './TableCheckbox';
+import { memo } from 'react';
 
 interface HoldingRowProps {
   holding: Holding;
-  isSelected: boolean;
-  onToggle: () => void;
 }
 
-export function HoldingRow({ holding, isSelected, onToggle }: HoldingRowProps) {
-  const gainColor = (val: number) =>
-    val >= 0 ? 'text-gain-green' : 'text-loss-red';
+export const HoldingRow = memo(function HoldingRow({ holding }: HoldingRowProps) {
+  const { selectedAssetIds, toggleAsset } = useTaxHarvesting();
+  const isSelected = selectedAssetIds.has(holding.coin);
 
-  const formatGain = (val: number) => {
-    if (val >= 0) return `+${formatIndianCurrency(val)}`;
-    return formatIndianCurrency(val);
-  };
+  const totalCurrentValue = holding.totalHolding * holding.currentPrice;
+
+  // Format amount to sell (combine balances if both are losses/profits, or just take the ones being harvested)
+  // Simplified for display: if selected, we sell the whole holding (or whatever logic is preferred)
+  // According to design, when checked it shows the full holding amount.
+  const amountToSell = isSelected ? `${formatPrice(holding.totalHolding)} ${holding.coin}` : '—';
 
   return (
     <tr
-      className={`border-b border-navy-700 transition-colors duration-200 hover:bg-navy-700/30 ${
+      className={`hover:bg-light-50 dark:hover:bg-navy-700/50 transition-colors duration-150 theme-transition ${
         isSelected ? 'row-selected' : ''
       }`}
     >
-      {/* Checkbox */}
-      <td className="py-3.5 px-3 sm:px-4">
+      <td className="py-4 pl-4 pr-2">
         <TableCheckbox
           checked={isSelected}
-          onChange={onToggle}
-          ariaLabel={`Select ${holding.coinName}`}
+          onChange={() => toggleAsset(holding.coin)}
         />
       </td>
 
-      {/* Asset */}
-      <td className="py-3.5 px-2 sm:px-3">
-        <div className="flex items-center gap-2.5">
-          <img
-            src={holding.logo}
-            alt={holding.coinName}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSIxNiIgZmlsbD0iIzFFMkEzQSIvPjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0ZGRiIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IkludGVyIj4/PC90ZXh0Pjwvc3ZnPg==';
-            }}
-          />
+      {/* Asset Info */}
+      <td className="py-4 px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 shrink-0 flex items-center justify-center">
+            {holding.logo ? (
+              <img src={holding.logo} alt={holding.coinName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-bold text-light-500">{holding.coin[0]}</span>
+            )}
+          </div>
           <div>
-            <div className="text-sm font-medium text-white">
-              {holding.coinName}
-            </div>
-            <div className="text-xs text-gray-400">{holding.coin}</div>
+            <div className="font-semibold text-light-900 dark:text-white theme-transition">{holding.coinName}</div>
+            <div className="text-xs text-light-500 dark:text-gray-400 theme-transition">{holding.coin}</div>
           </div>
         </div>
       </td>
 
-      {/* Holdings & Current Market Rate */}
-      <td className="py-3.5 px-2 sm:px-3 text-right">
-        <div className="text-sm text-white">
-          {formatNumber(holding.totalHolding)} {holding.coin}
+      {/* Holdings & Price */}
+      <td className="py-4 px-4 text-right">
+        <div className="font-medium text-light-900 dark:text-white theme-transition">
+          {formatPrice(holding.totalHolding)} {holding.coin}
         </div>
-        <div className="text-xs text-gray-400">
-          {formatPrice(holding.currentPrice)}/{holding.coin}
+        <div className="text-xs text-light-500 dark:text-gray-400 theme-transition">
+          {formatIndianCurrency(holding.currentPrice)}/{holding.coin}
         </div>
       </td>
 
       {/* Total Current Value */}
-      <td className="py-3.5 px-2 sm:px-3 text-right hidden lg:table-cell">
-        <div className="text-sm text-white">
-          {formatPrice(holding.currentPrice * holding.totalHolding)}
+      <td className="py-4 px-4 text-right font-medium text-light-900 dark:text-white theme-transition">
+        {formatIndianCurrency(totalCurrentValue)}
+      </td>
+
+      {/* Short Term */}
+      <td className="py-4 px-4 text-right hidden sm:table-cell">
+        <div
+          className={`font-medium ${
+            holding.stcg.gain > 0
+              ? 'text-gain-green'
+              : holding.stcg.gain < 0
+              ? 'text-loss-red'
+              : 'text-light-500 dark:text-gray-400'
+          }`}
+        >
+          {holding.stcg.gain > 0 ? '+' : ''}
+          {formatIndianCurrency(holding.stcg.gain)}
+        </div>
+        <div className="text-xs text-light-500 dark:text-gray-400 theme-transition">
+          {formatPrice(holding.stcg.balance)} {holding.coin}
         </div>
       </td>
 
-      {/* Short-term */}
-      <td className="py-3.5 px-2 sm:px-3 text-right hidden md:table-cell">
-        <div className={`text-sm font-medium ${gainColor(holding.stcg.gain)}`}>
-          {formatGain(holding.stcg.gain)}
+      {/* Long Term */}
+      <td className="py-4 px-4 text-right hidden sm:table-cell">
+        <div
+          className={`font-medium ${
+            holding.ltcg.gain > 0
+              ? 'text-gain-green'
+              : holding.ltcg.gain < 0
+              ? 'text-loss-red'
+              : 'text-light-500 dark:text-gray-400'
+          }`}
+        >
+          {holding.ltcg.gain > 0 ? '+' : ''}
+          {formatIndianCurrency(holding.ltcg.gain)}
         </div>
-        <div className="text-xs text-gray-400">
-          {formatNumber(holding.stcg.balance)} {holding.coin}
-        </div>
-      </td>
-
-      {/* Long-term */}
-      <td className="py-3.5 px-2 sm:px-3 text-right hidden md:table-cell">
-        <div className={`text-sm font-medium ${gainColor(holding.ltcg.gain)}`}>
-          {formatGain(holding.ltcg.gain)}
-        </div>
-        <div className="text-xs text-gray-400">
-          {formatNumber(holding.ltcg.balance)} {holding.coin}
+        <div className="text-xs text-light-500 dark:text-gray-400 theme-transition">
+          {formatPrice(holding.ltcg.balance)} {holding.coin}
         </div>
       </td>
 
       {/* Amount to Sell */}
-      <td className="py-3.5 px-2 sm:px-4 text-right hidden sm:table-cell">
-        <span className="text-sm text-white">
-          {isSelected
-            ? `${formatNumber(holding.totalHolding)} ${holding.coin}`
-            : '—'}
-        </span>
+      <td className="py-4 px-4 text-right font-medium text-light-900 dark:text-white theme-transition">
+        {amountToSell}
       </td>
     </tr>
   );
-}
+});

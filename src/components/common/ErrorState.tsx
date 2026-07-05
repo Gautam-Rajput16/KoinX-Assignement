@@ -23,10 +23,10 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
         </svg>
       </div>
 
-      <h3 className="text-lg font-semibold text-white mb-2">
+      <h3 className="text-lg font-semibold text-light-900 dark:text-white mb-2 theme-transition">
         Something went wrong
       </h3>
-      <p className="text-sm text-gray-400 mb-6 text-center max-w-md">
+      <p className="text-sm text-light-500 dark:text-gray-400 mb-6 text-center max-w-md theme-transition">
         {message}
       </p>
 

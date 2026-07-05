@@ -16,32 +16,40 @@ export function CapitalGainsCard({
   totalLabel,
   children,
 }: CapitalGainsCardProps) {
-  const isDark = variant === 'dark';
+  const isPreHarvesting = variant === 'dark';
 
-  const cardClasses = isDark
-    ? 'bg-navy-800 border border-navy-600'
+  // ── Card container classes ──
+  const cardClasses = isPreHarvesting
+    ? 'bg-white dark:bg-navy-800 border border-light-200 dark:border-navy-600'
     : 'bg-gradient-to-br from-koinx-blue to-koinx-blue-dark';
 
-  const titleClasses = isDark
-    ? 'text-white'
+  // ── Title ──
+  const titleClasses = isPreHarvesting
+    ? 'text-light-800 dark:text-white'
     : 'text-koinx-green';
 
-  const labelClasses = isDark
-    ? 'text-gray-300'
+  // ── Labels (Profits, Losses, Net Capital Gains) ──
+  const labelClasses = isPreHarvesting
+    ? 'text-light-600 dark:text-gray-300'
     : 'text-white/90';
 
-  const headerClasses = isDark
-    ? 'text-gray-400'
+  // ── Column headers (Short-term, Long-term) ──
+  const headerClasses = isPreHarvesting
+    ? 'text-light-400 dark:text-gray-400'
     : 'text-white/70';
 
-  const valueClasses = 'text-white';
+  // ── Number values ──
+  const valueClasses = isPreHarvesting
+    ? 'text-light-900 dark:text-white'
+    : 'text-white';
 
-  const dividerClasses = isDark
-    ? 'border-navy-600'
+  // ── Row dividers ──
+  const dividerClasses = isPreHarvesting
+    ? 'border-light-200 dark:border-navy-600'
     : 'border-white/15';
 
   return (
-    <div className={`rounded-xl p-5 sm:p-6 ${cardClasses}`}>
+    <div className={`rounded-xl p-5 sm:p-6 theme-transition ${cardClasses}`}>
       {/* Title */}
       <h3 className={`text-base font-semibold mb-4 ${titleClasses}`}>
         {title}
@@ -59,9 +67,7 @@ export function CapitalGainsCard({
       </div>
 
       {/* Profits Row */}
-      <div
-        className={`grid grid-cols-3 gap-2 py-2.5 border-b ${dividerClasses}`}
-      >
+      <div className={`grid grid-cols-3 gap-2 py-2.5 border-b ${dividerClasses}`}>
         <div className={`text-sm ${labelClasses}`}>Profits</div>
         <div className={`text-sm text-right number-transition ${valueClasses}`}>
           {formatIndianCurrency(gains.stcg.profits)}
@@ -72,9 +78,7 @@ export function CapitalGainsCard({
       </div>
 
       {/* Losses Row */}
-      <div
-        className={`grid grid-cols-3 gap-2 py-2.5 border-b ${dividerClasses}`}
-      >
+      <div className={`grid grid-cols-3 gap-2 py-2.5 border-b ${dividerClasses}`}>
         <div className={`text-sm ${labelClasses}`}>Losses</div>
         <div className={`text-sm text-right number-transition ${valueClasses}`}>
           {formatIndianCurrency(-gains.stcg.losses)}
@@ -89,27 +93,21 @@ export function CapitalGainsCard({
         <div className={`text-sm font-medium ${labelClasses}`}>
           Net Capital Gains
         </div>
-        <div
-          className={`text-sm text-right font-medium number-transition ${valueClasses}`}
-        >
+        <div className={`text-sm text-right font-medium number-transition ${valueClasses}`}>
           {formatIndianCurrency(gains.stcg.net)}
         </div>
-        <div
-          className={`text-sm text-right font-medium number-transition ${valueClasses}`}
-        >
+        <div className={`text-sm text-right font-medium number-transition ${valueClasses}`}>
           {formatIndianCurrency(gains.ltcg.net)}
         </div>
       </div>
 
-      {/* Divider */}
+      {/* Divider + Total */}
       <div className={`border-t ${dividerClasses} mt-2 pt-4`}>
         <div className="flex items-baseline gap-3 flex-wrap">
           <span className={`text-sm font-medium ${labelClasses}`}>
             {totalLabel}:
           </span>
-          <span
-            className={`text-2xl sm:text-3xl font-bold number-transition ${valueClasses}`}
-          >
+          <span className={`text-2xl sm:text-3xl font-bold number-transition ${valueClasses}`}>
             {formatIndianCurrency(gains.realisedCapitalGains)}
           </span>
         </div>
