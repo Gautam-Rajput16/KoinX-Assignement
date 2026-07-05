@@ -1,7 +1,7 @@
 import { useTaxHarvesting } from '../../context/TaxHarvestingContext';
 import { HoldingRow } from './HoldingRow';
 import { TableCheckbox } from './TableCheckbox';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export function HoldingsTable() {
   const {
@@ -11,13 +11,38 @@ export function HoldingsTable() {
   } = useTaxHarvesting();
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'stcg' | 'ltcg';
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   if (holdings.length === 0) return null;
 
-  // Sorting: by highest absolute short-term capital gains first
-  const sortedHoldings = [...holdings].sort((a, b) => {
-    return Math.abs(b.stcg.gain) - Math.abs(a.stcg.gain);
-  });
+  // Sorting logic
+  const sortedHoldings = useMemo(() => {
+    let sortableItems = [...holdings];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        const aVal = a[sortConfig.key].gain;
+        const bVal = b[sortConfig.key].gain;
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    } else {
+      // Default: absolute STCG descending
+      sortableItems.sort((a, b) => Math.abs(b.stcg.gain) - Math.abs(a.stcg.gain));
+    }
+    return sortableItems;
+  }, [holdings, sortConfig]);
+
+  const requestSort = (key: 'stcg' | 'ltcg') => {
+    let direction: 'asc' | 'desc' = 'desc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const visibleHoldings = isExpanded ? sortedHoldings : sortedHoldings.slice(0, 8);
   const isAllSelected = holdings.length > 0 && selectedAssetIds.size === holdings.length;
@@ -56,11 +81,27 @@ export function HoldingsTable() {
                 <th className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right">
                   Total Current Value
                 </th>
-                <th className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right hidden sm:table-cell">
-                  Short-term
+                <th 
+                  className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right hidden sm:table-cell cursor-pointer group select-none transition-colors hover:text-light-700 dark:hover:text-gray-300"
+                  onClick={() => requestSort('stcg')}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    Short-term
+                    <span className={`transition-opacity ${sortConfig?.key === 'stcg' ? 'text-koinx-blue opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                      {sortConfig?.key === 'stcg' && sortConfig.direction === 'asc' ? '↑' : '↓'}
+                    </span>
+                  </div>
                 </th>
-                <th className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right hidden sm:table-cell">
-                  Long-term
+                <th 
+                  className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right hidden sm:table-cell cursor-pointer group select-none transition-colors hover:text-light-700 dark:hover:text-gray-300"
+                  onClick={() => requestSort('ltcg')}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    Long-term
+                    <span className={`transition-opacity ${sortConfig?.key === 'ltcg' ? 'text-koinx-blue opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                      {sortConfig?.key === 'ltcg' && sortConfig.direction === 'asc' ? '↑' : '↓'}
+                    </span>
+                  </div>
                 </th>
                 <th className="py-4 px-4 text-xs font-semibold text-light-500 dark:text-gray-400 uppercase tracking-wider text-right">
                   Amount to Sell

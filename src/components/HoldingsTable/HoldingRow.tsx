@@ -1,6 +1,6 @@
 import { useTaxHarvesting } from '../../context/TaxHarvestingContext';
 import type { Holding } from '../../types';
-import { formatIndianCurrency, formatPrice } from '../../hooks/useCapitalGainsCalculations';
+import { formatIndianCurrency, formatPrice, formatCompactCurrency } from '../../hooks/useCapitalGainsCalculations';
 import { TableCheckbox } from './TableCheckbox';
 import { memo } from 'react';
 
@@ -60,8 +60,19 @@ export const HoldingRow = memo(function HoldingRow({ holding }: HoldingRowProps)
       </td>
 
       {/* Total Current Value */}
-      <td className="py-4 px-4 text-right font-medium text-light-900 dark:text-white theme-transition">
-        {formatIndianCurrency(totalCurrentValue)}
+      <td className="py-4 px-4 text-right">
+        <div className="relative inline-block group">
+          <span className="font-medium text-light-900 dark:text-white theme-transition cursor-default">
+            {formatCompactCurrency(totalCurrentValue)}
+          </span>
+          
+          {/* Custom Tooltip */}
+          <div className="absolute bottom-[calc(100%+4px)] right-1/2 translate-x-1/2 sm:translate-x-0 sm:right-0 sm:left-auto px-3 py-1.5 bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-[13px] font-semibold rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 scale-95 group-hover:scale-100">
+            {formatIndianCurrency(totalCurrentValue)}
+            {/* Tooltip Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-auto sm:-translate-x-0 sm:right-4 border-4 border-transparent border-t-navy-900 dark:border-t-white"></div>
+          </div>
+        </div>
       </td>
 
       {/* Short Term */}

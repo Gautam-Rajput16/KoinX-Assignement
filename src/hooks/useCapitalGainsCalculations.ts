@@ -150,6 +150,18 @@ export function formatPrice(value: number): string {
 }
 
 /**
+ * Format large numbers compactly (e.g., ₹300K, ₹1.5M)
+ */
+export function formatCompactCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'INR',
+    notation: 'compact',
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+/**
  * Compute the savings amount (Pre - Post realised gains).
  * Returns positive if there are savings, 0 otherwise.
  */
